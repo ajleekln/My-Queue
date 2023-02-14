@@ -4,11 +4,9 @@ class MyQueue:
         self.__max_size = max_size
         self.__queue = []
         self.__size = 0
+     
         
-        self.__enable_wait = False
-        self.__waitlist = []
-        
-    def full(self):
+    def is_full(self):
         if self.__max_size ==  None:
             return False
         else:
@@ -31,17 +29,14 @@ class MyQueue:
                 self.add(item)
 
     def force_add(self, item):
-        if self.full():
+        if self.is_full():
             self.get()
         self.add(item)
 
     def add (self, item ):
-        if not self.full():
+        if not self.is_full():
             self.__queue.append(item)
             self.__size += 1
-        else:
-            if self.__enable_wait:
-                self.__waitlist.append(item)
         
     def front(self):
         if not self.empty():
@@ -54,14 +49,16 @@ class MyQueue:
     def get (self):
         if not self.empty():
             out = self.__queue.pop(0)
-            if self.__enable_wait:
-                self.__queue.append(self.__waitlist.pop(0))
-            else:
-                self.__size -= 1
+            self.__size -= 1
             return out
-        
         return
-    
+    def push(self, item):
+         """
+         Adds item to the queue pushing the front item if the queue is full 
+         """
+         if self.is_full():
+            self.get()
+         self.add(item)
     def clear (self):
         self.__size = 0
         self.__queue.clear()
@@ -69,19 +66,18 @@ class MyQueue:
     def display(self):
         print(self.__queue)
         
-        
-    def enable_waitlist (self, bool):
-        self.__enable_waitlist = bool
-            
 
 class PriorityQueue(MyQueue):
-    
+    """
+    A queue in which automatically sorts objects in queue by given priority from highest priority 
+    being at the front of the queue and the lowest at the end of the queue, respectively 
+    """
     def __init__(self, max_size = None):
         MyQueue.__init__(self, max_size)
         self.__cursor = 0
         
     def add(self, item, priority : int):
-        if not self.full():
+        if not self.is_full():
             added = False
             
             # check for priority that is higher
@@ -93,33 +89,30 @@ class PriorityQueue(MyQueue):
                 self.get_queue().append( (item,priority) )
             size = self.size()    
             size += 1
-        else:
-            if self.__enable_wait:
-                self.__waitlist.append(item)        
-    
-    def get (self):
-        if not self.empty():
-            out = self.get_queue().pop(0)
-            if self.__enable_wait:
-                self.get_queue().append(self.__waitlist.pop(0))
-            else:
-                size = self.size()    
-                size -= 1
-            return out[0]
-        else:
-            return
-    
-    def front(self):
-        if not self.empty(): 
-            return MyQueue.front(self)[0]
-        
+              
     def force_add(self, item, priority):
-        if self.full():
+         """
+         Will force add item into the queue, if queue is full at time of execution, the lowest priority item will be removed from queue
+         """
+         
+         if self.is_full():
+            lowest_priority_object = self.get_queue()[-1] 
+            self.remove(lowest_priority_object)
+
+         self.add(item, priority)
+    def push(self, item, priority):
+         if self.is_full():
             self.get()
-       
-        self.add(item, priority)
-       
-    def remove(self, obj):
-        for i in self.self.get_queue():
-            if i[0] == obj:
-                self.get_queue().remove(i)
+         self.add(item, priority)
+    def remove(self, item):
+         """
+         Removes a given item from the queue
+         
+         WARNING:
+         - if the queue has copies of the item with different priority, the wrong itme could be removed
+         """
+         for item_and_priority in self.self.get_queue():
+            if item_and_priority[0] == item:
+                self.get_queue().remove(item_and_priortiy)
+                  
+                  
